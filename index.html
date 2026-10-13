@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="The Gallery">
+<meta name="theme-color" content="#eceef1">
+<title>The Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Optional extra fonts: loaded only when online; offline falls back to system fonts. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Montserrat:wght@400;700&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<style>
+:root{
+  --bg:#eceef1; --card:#ffffff; --ink:#14161a; --mute:#6b7280; --line:#d9dce2; --soft:#f3f4f6;
+  --acc:#2f4bff; --acc-ink:#ffffff; --warn:#b45309; --r:14px; --safeB:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0e1013; --card:#171a1f; --ink:#eef0f3; --mute:#8a919c; --line:#2a2e35; --soft:#20242a; --acc:#7a8cff; --acc-ink:#0b0d12; --warn:#f59e0b; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;touch-action:manipulation}
+main{padding-bottom:calc(86px + var(--safeB));max-width:640px;margin:0 auto}
+.tab{display:none}.tab.on{display:block}
+.appbar{padding:calc(12px + env(safe-area-inset-top,0px)) 16px 4px;display:flex;align-items:baseline;gap:10px}
+.appbar h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.appbar span{color:var(--mute);font-size:13px}
+
+/* live filmstrip */
+.stick{position:sticky;top:0;z-index:6;background:var(--bg);padding:8px 14px 10px;border-bottom:1px solid var(--line)}
+.strip{display:flex;gap:2px;overflow-x:auto;height:104px;border-radius:8px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.strip canvas{height:100%;width:auto;flex:none;outline:1px solid var(--line);outline-offset:-1px;background:#fff}
+.meta{margin-top:7px;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.meta b{color:var(--ink);font-weight:650}
+.meta .w{color:var(--warn)}
+
+.chipbar{padding:12px 14px 0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip small{color:var(--mute);font-weight:500;margin-left:6px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.on small{color:inherit;opacity:.7}
+.acts{display:flex;gap:8px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin:12px 14px;padding:0 14px 12px}
+details.card>summary{list-style:none;padding:14px 0;font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:'+';font-size:22px;font-weight:400;color:var(--mute);line-height:1}
+details[open].card>summary::after{content:'\2212'}
+.card h3{margin:0;padding:14px 0 4px;font-size:15px}
+.row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.row>.lbl{flex:0 0 92px;font-size:13px;color:var(--mute)}
+.row.col{flex-direction:column;align-items:stretch;gap:6px}
+.row.col>.lbl{flex:none}
+.inline{display:flex;gap:8px}
+.val{flex:0 0 46px;text-align:right;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+input[type=text],input[type=date],input[type=time],input[type=number],select{width:100%;min-height:44px;font:inherit;font-size:16px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);-webkit-appearance:none;appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--mute) 50%),linear-gradient(135deg,var(--mute) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+input[type=range]{width:100%;accent-color:var(--acc);height:32px;margin:0}
+input[type=color]{width:56px;height:44px;border:1px solid var(--line);border-radius:10px;padding:3px;background:var(--soft);flex:none}
+input[type=checkbox]{width:24px;height:24px;accent-color:var(--acc);flex:none}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;font-size:15px}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:15px;font-weight:650;flex:none}
+.btn.sm{min-height:38px;padding:0 12px;font-size:14px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45}
+.seg{display:flex;background:var(--soft);border-radius:10px;padding:3px;gap:3px;border:1px solid var(--line);width:100%}
+.seg button{flex:1;min-height:38px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;padding:0 6px}
+.seg button.on{background:var(--card);color:var(--acc);box-shadow:0 0 0 1px var(--line)}
+.togs{display:flex;gap:8px}
+.tog{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:17px}
+.tog.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.stepper{display:flex;gap:8px}.stepper input{text-align:center;min-width:0}.stepper .btn{width:48px;padding:0;font-size:22px}
+.presets{display:flex;gap:10px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.presets::-webkit-scrollbar{display:none}
+.sw{flex:none;width:46px;height:46px;border-radius:50%;border:2px solid var(--line);font:700 15px/1 Georgia,serif;display:grid;place-items:center}
+.hint{font-size:12.5px;color:var(--mute);margin:6px 0 0}
+.hide{display:none!important}
+
+/* gallery simulator */
+.phone{background:#000;border-radius:18px;padding:8px;margin:12px 14px}
+.grid{display:grid;gap:2px}
+.grid>*{aspect-ratio:1/1;width:100%;display:block;object-fit:cover;min-width:0}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--mute);margin:0 14px;flex-wrap:wrap}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* export */
+.sumrow{padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.sumrow:first-child{border-top:0}
+.sumrow b{font-weight:700}.sumrow .m{color:var(--mute);font-size:12.5px;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--soft);overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:var(--acc);width:0;transition:width .15s}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.thumbs a{display:block;color:inherit;text-decoration:none;font-size:11.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.thumbs img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;margin-bottom:3px;background:#fff}
+.ghead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.ghead b{font-size:14.5px}
+.note{font-size:13.5px;color:var(--mute);line-height:1.5}
+.note li{margin:5px 0}
+.note ul{padding-left:18px;margin:6px 0}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--safeB)}
+nav.tabs button{flex:1;min-height:58px;border:0;background:transparent;color:var(--mute);font:inherit;font-size:12px;font-weight:650;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+nav.tabs button i{font-style:normal;font-size:20px;line-height:1}
+nav.tabs button.on{color:var(--acc)}
+.toast{position:fixed;left:50%;bottom:calc(76px + var(--safeB));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:90%;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<noscript>This app needs JavaScript.</noscript>
+<main>
+
+<!-- ============ DESIGN ============ -->
+<section id="tab-design" class="tab on">
+  <div class="appbar"><h1>The Gallery</h1><span>photo dividers</span></div>
+  <div class="stick">
+    <div class="strip" id="strip"></div>
+    <div class="meta" id="stripMeta"></div>
+  </div>
+
+  <div class="chipbar">
+    <div class="chips" id="chips"></div>
+    <div class="acts">
+      <button class="btn sm" id="btnNew">New divider</button>
+      <button class="btn sm" id="btnDup">Duplicate</button>
+      <button class="btn sm" id="btnDel">Delete</button>
+    </div>
+  </div>
+
+  <details class="card" open>
+    <summary>Text</summary>
+    <div class="row col"><div class="lbl">Title</div>
+      <div class="inline">
+        <input type="text" data-f="title" data-t="str" maxlength="40" autocomplete="off" autocorrect="off" placeholder="e.g. BALI">
+        <button class="btn" id="btnShuffle" aria-label="New positive word">Shuffle</button>
+      </div>
+      <p class="hint">Starts with a positive word. Replace it with a place, trip or event name.</p>
+    </div>
+    <div class="row col"><div class="lbl">Subtitle (optional)</div>
+      <div class="inline">
+        <input type="text" data-f="subtitle" data-t="str" maxlength="60" autocomplete="off" placeholder="e.g. 20 – 27 Oct 2026">
+        <button class="btn" id="btnDateSub">Use date</button>
+      </div>
+    </div>
+    <div class="row col"><div class="lbl">Font</div><select data-f="font" data-t="str" id="fontSel"></select></div>
+    <div class="row col"><div class="lbl">Style</div>
+      <div class="togs">
+        <button class="tog" data-f="bold" aria-label="Bold"><b>B</b></button>
+        <button class="tog" data-f="italic" aria-label="Italic"><i style="font-family:Georgia,serif">I</i></button>
+        <button class="tog" data-f="upper" aria-label="Uppercase">AA</button>
+        <button class="tog" data-f="stack" aria-label="One word per line">Stack</button>
+        <button class="tog" data-f="shadow" aria-label="Shadow">Shadow</button>
+      </div>
+    </div>
+    <div class="row"><div class="lbl">Size mode</div>
+      <div class="seg" data-f="fit"><button data-v="true">Auto-fit</button><button data-v="false">Manual</button></div>
+    </div>
+    <div class="row" data-when="fit"><div class="lbl">Text width</div><input type="range" min="20" max="100" data-f="fillPct" data-t="num"><span class="val" data-out="fillPct" data-suf="%"></span></div>
+    <div class="row" data-when="nofit"><div class="lbl">Font size</div><input type="range" min="4" max="120" data-f="sizePct" data-t="num"><span class="val" data-out="sizePct" data-suf="%"></span></div>
+    <div class="row"><div class="lbl">Letter gap</div><input type="range" min="-4" max="40" data-f="spacing" data-t="num"><span class="val" data-out="spacing"></span></div>
+    <div class="row"><div class="lbl">Subtitle size</div><input type="range" min="12" max="80" data-f="subPct" data-t="num"><span class="val" data-out="subPct" data-suf="%"></span></div>
+    <div class="row"><div class="lbl">Position ↔</div><input type="range" min="0" max="100" data-f="posX" data-t="num"><span class="val" data-out="posX" data-suf="%"></span></div>
+    <div class="row"><div class="lbl">Position ↕</div><input type="range" min="0" max="100" data-f="posY" data-t="num"><span class="val" data-out="posY" data-suf="%"></span></div>
+    <div class="row"><div class="lbl">Text color</div><input type="color" data-f="color" data-t="str"></div>
+  </details>
+
+  <details class="card" open>
+    <summary>Images, layout &amp; date</summary>
+    <div class="row col"><div class="lbl">Number of images</div>
+      <div class="stepper"><button class="btn" data-step="count:-1" aria-label="Fewer">−</button><input type="number" inputmode="numeric" min="1" max="30" data-f="count" data-t="num"><button class="btn" data-step="count:1" aria-label="More">+</button></div>
+      <p class="hint">3 or 6 make full rows in a 3-column gallery.</p>
+    </div>
+    <div class="row col"><div class="lbl">Layout</div>
+      <div class="seg" data-f="mode"><button data-v="center">One tile</button><button data-v="every">Every tile</button><button data-v="span">Span across</button></div>
+      <p class="hint" id="modeHint"></p>
+    </div>
+    <div class="row col" data-when="center"><div class="lbl">Text on tile</div><select data-f="textTile" data-t="num"></select></div>
+    <div class="row col"><div class="lbl">Date of the trip / event</div><input type="date" data-f="date" data-t="str"></div>
+    <div class="row col"><div class="lbl">Where it sits in that day</div>
+      <select data-f="placement" data-t="str">
+        <option value="start">Start of day — from 00:00:00</option>
+        <option value="end">End of day — ends 23:59:59</option>
+        <option value="custom">Custom start time</option>
+      </select>
+    </div>
+    <div class="row col" data-when="custom"><div class="lbl">Start time</div><input type="time" step="1" data-f="customTime" data-t="str"></div>
+    <p class="hint">Each image is stamped one second after the previous one, so the set stays together and sorts right before (or after) that day's photos.</p>
+  </details>
+
+  <details class="card">
+    <summary>Background</summary>
+    <div class="row col"><div class="lbl">Presets</div><div class="presets" id="presets"></div></div>
+    <div class="row col"><div class="lbl">Type</div><div class="seg" data-f="bgType"><button data-v="solid">Solid</button><button data-v="gradient">Gradient</button></div></div>
+    <div class="row"><div class="lbl">Color</div><input type="color" data-f="bg1" data-t="str"><span data-when="grad" style="display:contents"><input type="color" data-f="bg2" data-t="str"></span></div>
+    <div class="row" data-when="grad"><div class="lbl">Angle</div><input type="range" min="0" max="360" data-f="angle" data-t="num"><span class="val" data-out="angle" data-suf="°"></span></div>
+  </details>
+
+  <details class="card">
+    <summary>Output size (all dividers)</summary>
+    <div class="row col"><div class="lbl">Resolution</div>
+      <select data-g="size"><option value="1080">1080 px wide (small files)</option><option value="1440">1440 px wide</option><option value="2048">2048 px wide (sharp)</option></select></div>
+    <div class="row col"><div class="lbl">Shape</div>
+      <select data-g="aspect"><option value="1:1">Square 1:1 (matches gallery grid)</option><option value="3:4">Portrait 3:4</option><option value="4:3">Landscape 4:3</option><option value="9:16">Tall 9:16</option></select></div>
+  </details>
+</section>
+
+<!-- ============ GALLERY SIM ============ -->
+<section id="tab-sim" class="tab">
+  <div class="appbar"><h1>Gallery preview</h1><span>how it will look</span></div>
+  <div class="card" style="padding-bottom:14px">
+    <h3>Your gallery sorts</h3>
+    <div class="row col"><div class="seg" data-g="order"><button data-v="oldest">Oldest first (iPhone Photos)</button><button data-v="newest">Newest first (Android)</button></div></div>
+    <div class="row col"><div class="lbl">Columns</div><div class="seg" data-g="cols"><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
+    <div class="row col"><div class="lbl" id="beforeLbl">Other photos before the divider</div><input type="number" inputmode="numeric" min="0" max="8" data-g="before"></div>
+    <p class="hint">Change the number above to see how the divider lines up with rows. If the title lands off-center, change “Text on tile” or the number of images.</p>
+  </div>
+  <div class="phone"><div class="grid" id="simGrid"></div></div>
+  <div class="legend"><span><i class="dot" style="background:#9aa0a8"></i>Other photos</span><span><i class="dot" style="background:#e0a458"></i>Your trip photos</span><span><i class="dot" style="background:#fff;outline:1px solid #888"></i>Divider</span></div>
+</section>
+
+<!-- ============ EXPORT ============ -->
+<section id="tab-export" class="tab">
+  <div class="appbar"><h1>Export</h1><span>make &amp; save the images</span></div>
+  <div class="card" style="padding-bottom:14px">
+    <h3>Gallery order</h3>
+    <div class="row col"><div class="seg" data-g="order"><button data-v="oldest">Oldest first (iPhone Photos)</button><button data-v="newest">Newest first (Android)</button></div>
+      <p class="hint">Sets the second-by-second order so multi-tile titles read left to right in your gallery.</p></div>
+  </div>
+  <div class="card" style="padding-bottom:14px">
+    <h3>Dividers to create</h3>
+    <div id="expSummary"></div>
+    <button class="btn pri block" id="btnGen" style="margin-top:12px">Create images</button>
+    <div class="bar hide" id="genBar"><i></i></div>
+    <p class="hint" id="genStatus"></p>
+  </div>
+  <div id="expResults"></div>
+  <details class="card">
+    <summary>Tips for saving</summary>
+    <div class="note">
+      <ul>
+        <li><b>iPhone:</b> tap “Save to Photos / Share”, then “Save N Images”. Photos files them by the date stored inside each image.</li>
+        <li><b>Android:</b> use “Save to Photos / Share” and pick your gallery or Google Photos. If you download instead and your gallery shows them under today, share them straight into the gallery app.</li>
+        <li><b>No share sheet?</b> Download the ZIP, unzip it in Files, then select the images and save. Tapping a preview also opens the image so you can long-press to save.</li>
+        <li><b>Running it on your phone:</b> on Android, open this file from your file manager in Chrome. On iPhone, local files often don’t run scripts, so upload it to any free static host once (Netlify Drop, GitHub Pages) and use Add to Home Screen.</li>
+        <li>Your settings are remembered on this device. Your real photos are never touched.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="design" class="on"><i>✎</i>Design</button>
+  <button data-tab="sim"><i>▦</i>Gallery</button>
+  <button data-tab="export"><i>⇩</i>Export</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/*PURE-START*/
+const pad2 = n => String(n).padStart(2, '0');
+function secToHMS(sec){ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return pad2(h)+':'+pad2(m)+':'+pad2(s); }
+function parseHMS(t){ const p=String(t||'00:00:00').split(':').map(Number); return (p[0]||0)*3600+(p[1]||0)*60+(p[2]||0); }
+function exifDate(dateStr, sec){ return dateStr.replace(/-/g,':')+' '+secToHMS(sec); }
+function tsFrom(dateStr, sec){ const p=dateStr.split('-').map(Number); return new Date(p[0],p[1]-1,p[2],0,0,sec).getTime(); }
+
+/* Lays out every divider on the clock. Same-day dividers stack so they never overlap. */
+function computeSchedule(divs, reverse){
+  const nextStart={}, nextEnd={}, out=[];
+  for(const d of divs){
+    const n=Math.max(1,d.count|0), key=d.date; let first, warn='';
+    if(d.placement==='end'){ const e=(key in nextEnd)?nextEnd[key]:86399; first=e-(n-1); nextEnd[key]=first-1; }
+    else if(d.placement==='custom'){ first=parseHMS(d.customTime); }
+    else { first=(key in nextStart)?nextStart[key]:0; nextStart[key]=first+n; }
+    if(first<0){ first=0; warn='Not enough room in the day; moved to start.'; }
+    if(first+n-1>86399){ first=Math.max(0,86399-(n-1)); warn='Would pass midnight; moved earlier to stay on the same day.'; }
+    const times=[]; for(let k=0;k<n;k++) times.push(first+(reverse?(n-1-k):k));
+    out.push({first:first, last:first+n-1, times:times, warn:warn});
+  }
+  return out;
+}
+
+/* Minimal EXIF (big-endian TIFF): DateTime, DateTimeOriginal, DateTimeDigitized. */
+function buildExifSegment(exifStr){
+  const dt=new Uint8Array(20); for(let i=0;i<19;i++) dt[i]=exifStr.charCodeAt(i); dt[19]=0;
+  const tiff=new Uint8Array(140), v=new DataView(tiff.buffer);
+  tiff[0]=0x4d; tiff[1]=0x4d; v.setUint16(2,42); v.setUint32(4,8);
+  v.setUint16(8,2); let p=10;
+  v.setUint16(p,0x0132); v.setUint16(p+2,2); v.setUint32(p+4,20); v.setUint32(p+8,38); p+=12;
+  v.setUint16(p,0x8769); v.setUint16(p+2,4); v.setUint32(p+4,1);  v.setUint32(p+8,58); p+=12;
+  v.setUint32(p,0);
+  tiff.set(dt,38);
+  v.setUint16(58,3); p=60;
+  v.setUint16(p,0x9000); v.setUint16(p+2,7); v.setUint32(p+4,4); tiff.set([0x30,0x32,0x33,0x30],p+8); p+=12;
+  v.setUint16(p,0x9003); v.setUint16(p+2,2); v.setUint32(p+4,20); v.setUint32(p+8,100); p+=12;
+  v.setUint16(p,0x9004); v.setUint16(p+2,2); v.setUint32(p+4,20); v.setUint32(p+8,120); p+=12;
+  v.setUint32(p,0);
+  tiff.set(dt,100); tiff.set(dt,120);
+  const seg=new Uint8Array(4+6+tiff.length);
+  seg[0]=0xFF; seg[1]=0xE1; const len=2+6+tiff.length; seg[2]=len>>8; seg[3]=len&255;
+  seg.set([0x45,0x78,0x69,0x66,0,0],4); seg.set(tiff,10);
+  return seg;
+}
+function injectExif(jpeg, exifStr){
+  if(jpeg[0]!==0xFF||jpeg[1]!==0xD8) throw new Error('Not a JPEG');
+  const seg=buildExifSegment(exifStr);
+  let i=2;
+  if(jpeg[i]===0xFF&&jpeg[i+1]===0xE0){ i+=2+((jpeg[i+2]<<8)|jpeg[i+3]); }
+  let j=i;
+  if(jpeg[j]===0xFF&&jpeg[j+1]===0xE1&&jpeg[j+4]===0x45&&jpeg[j+5]===0x78){ j+=2+((jpeg[j+2]<<8)|jpeg[j+3]); }
+  const out=new Uint8Array(i+seg.length+(jpeg.length-j));
+  out.set(jpeg.subarray(0,i),0); out.set(seg,i); out.set(jpeg.subarray(j),i+seg.length);
+  return out;
+}
+
+/* Store-only ZIP writer (JPEGs are already compressed). */
+const CRC_T=(function(){const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_T[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function makeZip(files){
+  const enc=new TextEncoder(), chunks=[], cds=[]; let off=0;
+  for(const f of files){
+    const nm=enc.encode(f.name), crc=crc32(f.data), dt=new Date(f.ts);
+    const time=(dt.getHours()<<11)|(dt.getMinutes()<<5)|(dt.getSeconds()>>1);
+    const date=((dt.getFullYear()-1980)<<9)|((dt.getMonth()+1)<<5)|dt.getDate();
+    const lh=new Uint8Array(30+nm.length), v=new DataView(lh.buffer);
+    v.setUint32(0,0x04034b50,true); v.setUint16(4,20,true); v.setUint16(6,0x0800,true); v.setUint16(8,0,true);
+    v.setUint16(10,time,true); v.setUint16(12,date,true); v.setUint32(14,crc,true);
+    v.setUint32(18,f.data.length,true); v.setUint32(22,f.data.length,true); v.setUint16(26,nm.length,true); v.setUint16(28,0,true);
+    lh.set(nm,30); chunks.push(lh,f.data);
+    const cd=new Uint8Array(46+nm.length), c=new DataView(cd.buffer);
+    c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint16(10,0,true);
+    c.setUint16(12,time,true); c.setUint16(14,date,true); c.setUint32(16,crc,true);
+    c.setUint32(20,f.data.length,true); c.setUint32(24,f.data.length,true); c.setUint16(28,nm.length,true);
+    c.setUint32(42,off,true); cd.set(nm,46); cds.push(cd);
+    off+=lh.length+f.data.length;
+  }
+  let cdSize=0; cds.forEach(c=>{cdSize+=c.length;});
+  const end=new Uint8Array(22), e=new DataView(end.buffer);
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true); e.setUint32(12,cdSize,true); e.setUint32(16,off,true);
+  return new Blob(chunks.concat(cds,[end]),{type:'application/zip'});
+}
+/*PURE-END*/
+
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const WORDS=['Good Vibes','Pure Joy','Wanderlust','Adventure','Sunshine','Happy Days','Be Free','Fresh Start','Good Energy','Endless Summer','Happy Place','Gratitude','Shine Bright','Dream Big','New Chapter','Feel Alive','Stay Curious','Explore More','Pure Bliss','Joyful','Wonderful','Smile','Peace','Harmony','Radiant','Hello Joy','Let\u2019s Go','Magic','Cheers','Memories'];
+const randWord=(avoid)=>{let w;do{w=WORDS[Math.floor(Math.random()*WORDS.length)];}while(w===avoid&&WORDS.length>1);return w;};
+
+const FONTS={
+  modern:{label:'Modern Sans',stack:'"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif'},
+  geo:{label:'Geometric',stack:'"Montserrat","Avenir Next","Segoe UI",system-ui,sans-serif'},
+  condensed:{label:'Bold Condensed',stack:'"Bebas Neue",Impact,"Arial Narrow",sans-serif',single:true},
+  serif:{label:'Classic Serif',stack:'Georgia,"Times New Roman",serif'},
+  elegant:{label:'Elegant Serif',stack:'"Playfair Display",Didot,"Bodoni 72",Georgia,serif'},
+  script:{label:'Brush Script',stack:'"Pacifico","Snell Roundhand","Brush Script MT",cursive',single:true,joined:true},
+  hand:{label:'Handwritten',stack:'"Dancing Script","Bradley Hand","Segoe Script",cursive',joined:true},
+  mono:{label:'Typewriter',stack:'"Courier New",Courier,monospace'}
+};
+const PRESETS=[
+  {n:'Clean',bgType:'solid',bg1:'#ffffff',bg2:'#ffffff',color:'#111111'},
+  {n:'Ink',bgType:'solid',bg1:'#0f1115',bg2:'#0f1115',color:'#ffffff'},
+  {n:'Sunset',bgType:'gradient',bg1:'#ff9966',bg2:'#ff5e62',angle:90,color:'#ffffff'},
+  {n:'Ocean',bgType:'gradient',bg1:'#2193b0',bg2:'#6dd5ed',angle:90,color:'#ffffff'},
+  {n:'Sand',bgType:'solid',bg1:'#e9dfcf',bg2:'#e9dfcf',color:'#3a2f23'},
+  {n:'Mint',bgType:'gradient',bg1:'#d4fc79',bg2:'#96e6a1',angle:135,color:'#17402a'},
+  {n:'Lilac',bgType:'gradient',bg1:'#a18cd1',bg2:'#fbc2eb',angle:90,color:'#2a1740'},
+  {n:'Forest',bgType:'solid',bg1:'#1f3a2e',bg2:'#1f3a2e',color:'#f3efe0'}
+];
+const MODE_HINT={
+  center:'Title on one tile with plain tiles around it, like white – BALI – white.',
+  every:'The same title repeated on every tile.',
+  span:'One big title sliced across all tiles, so it forms a billboard in the grid.'
+};
+
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function newDivider(over){
+  return Object.assign({
+    title:randWord(), subtitle:'', date:todayStr(), count:3, placement:'start', customTime:'00:00:00',
+    mode:'center', textTile:0, font:'modern', bold:true, italic:false, upper:true, stack:false, shadow:false,
+    fit:true, fillPct:72, sizePct:18, spacing:8, subPct:30, posX:50, posY:50, color:'#111111',
+    bgType:'solid', bg1:'#ffffff', bg2:'#ffffff', angle:135
+  }, over||{});
+}
+
+const KEY='gallery-dividers.v1';
+const isAndroid=/Android/i.test(navigator.userAgent);
+const state={ tab:'design', dividers:[newDivider()], active:0, order:isAndroid?'newest':'oldest', sim:{cols:3,before:2}, out:{size:1080,aspect:'1:1'}, gen:null };
+try{
+  const s=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(s&&Array.isArray(s.dividers)&&s.dividers.length){
+    state.dividers=s.dividers.map(x=>newDivider(x));
+    state.active=clamp(s.active|0,0,state.dividers.length-1);
+    if(s.order) state.order=s.order;
+    if(s.sim) Object.assign(state.sim,s.sim);
+    if(s.out) Object.assign(state.out,s.out);
+  }
+}catch(e){}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify({dividers:state.dividers,active:state.active,order:state.order,sim:state.sim,out:state.out})); }catch(e){} }
+const cur=()=>state.dividers[state.active];
+
+/* ---------- rendering ---------- */
+function asp(){ const p=state.out.aspect.split(':').map(Number); return {w:p[0],h:p[1]}; }
+function setFont(ctx,d,px,regular){ const F=FONTS[d.font]||FONTS.modern; ctx.font=(d.italic?'italic ':'')+((d.bold&&!F.single&&!regular)?'700':'400')+' '+px+'px '+F.stack; }
+function spacingPx(d,px){ const F=FONTS[d.font]||FONTS.modern; return F.joined?0:(d.spacing/100)*px; }
+function textW(ctx,str,sp){ if(!sp) return ctx.measureText(str).width; const ch=Array.from(str); let w=0; for(const c of ch) w+=ctx.measureText(c).width; return w+sp*(ch.length-1); }
+function drawLine(ctx,str,cx,cy,sp){
+  if(!sp){ ctx.textAlign='center'; ctx.fillText(str,cx,cy); return; }
+  ctx.textAlign='left'; let x=cx-textW(ctx,str,sp)/2;
+  for(const c of Array.from(str)){ ctx.fillText(c,x,cy); x+=ctx.measureText(c).width+sp; }
+}
+function paintBg(ctx,d,w,h){
+  if(d.bgType==='gradient'){
+    const a=(d.angle%360)*Math.PI/180, dx=Math.sin(a), dy=-Math.cos(a), L=Math.abs(w*dx)+Math.abs(h*dy), cx=w/2, cy=h/2;
+    const g=ctx.createLinearGradient(cx-dx*L/2,cy-dy*L/2,cx+dx*L/2,cy+dy*L/2);
+    g.addColorStop(0,d.bg1); g.addColorStop(1,d.bg2); ctx.fillStyle=g;
+  } else ctx.fillStyle=d.bg1;
+  ctx.fillRect(0,0,w,h);
+}
+function drawText(ctx,d,regionW,H,baseW){
+  const up=s=>d.upper?s.toUpperCase():s;
+  let title=up((d.title||'').trim()), sub=up((d.subtitle||'').trim());
+  if(!title&&!sub) return;
+  if(!title){ title=sub; sub=''; }
+  const lines=d.stack?title.split(/\s+/):[title], LH=1.12;
+  let px;
+  if(d.fit){
+    const avail=regionW*d.fillPct/100;
+    setFont(ctx,d,100); const sp=spacingPx(d,100);
+    const mw=Math.max(1,...lines.map(l=>textW(ctx,l,sp)));
+    px=100*avail/mw;
+    px=Math.min(px,(H*0.82)/(lines.length*LH+(sub?(d.subPct/100)*1.6+0.3:0)));
+    px=Math.min(px,H*0.5);
+  } else px=d.sizePct/100*baseW;
+  let px2=px*d.subPct/100;
+  if(sub){
+    setFont(ctx,d,px2,true);
+    const sp2=Math.max(spacingPx(d,px2),(FONTS[d.font]||{}).joined?0:px2*0.12);
+    const w2=textW(ctx,sub,sp2); if(w2>regionW*0.92) px2*=regionW*0.92/w2;
+  }
+  const titleH=lines.length*px*LH, gap=sub?px*0.3:0, subH=sub?px2*1.3:0, blockH=titleH+gap+subH;
+  const cx=regionW*d.posX/100, cy=H*d.posY/100, top=cy-blockH/2;
+  ctx.fillStyle=d.color; ctx.textBaseline='middle';
+  if(d.shadow){ ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=px*0.12; ctx.shadowOffsetY=px*0.04; }
+  setFont(ctx,d,px); const sp=spacingPx(d,px);
+  lines.forEach((l,i)=>drawLine(ctx,l,cx,top+px*LH*(i+0.5),sp));
+  if(sub){ setFont(ctx,d,px2,true); const sp2=Math.max(spacingPx(d,px2),(FONTS[d.font]||{}).joined?0:px2*0.12); drawLine(ctx,sub,cx,top+titleH+gap+subH/2,sp2); }
+  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+}
+function tileHasText(d,idx){
+  if(d.mode==='every'||d.mode==='span') return true;
+  const n=d.count, t=d.textTile>0?Math.min(d.textTile,n)-1:Math.floor((n-1)/2);
+  return idx===t;
+}
+function renderTile(canvas,d,idx,W,H){
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d'), span=d.mode==='span', n=d.count, totalW=span?W*n:W, off=span?idx*W:0;
+  ctx.save(); ctx.translate(-off,0);
+  paintBg(ctx,d,totalW,H);
+  if(tileHasText(d,idx)) drawText(ctx,d,totalW,H,W);
+  ctx.restore();
+}
+const fontsDone=new Set();
+async function ensureFont(d){
+  const F=FONTS[d.font]||FONTS.modern, k=d.font+(d.bold?'b':'')+(d.italic?'i':'');
+  if(fontsDone.has(k)||!(document.fonts&&document.fonts.load)) return;
+  const spec=(d.italic?'italic ':'')+((d.bold&&!F.single)?'700':'400')+' 40px '+F.stack;
+  try{ await Promise.race([document.fonts.load(spec,(d.title||'A')+(d.subtitle||'')),new Promise(r=>setTimeout(r,1500))]); }catch(e){}
+  fontsDone.add(k);
+}
+
+/* ---------- design tab ---------- */
+let raf=0;
+function schedule(){
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(async()=>{ await ensureFont(cur()); drawStrip(); if(state.tab==='sim') drawSim(); });
+}
+function fmtDate(ds,long){ const p=ds.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,long?{day:'numeric',month:'long',year:'numeric'}:{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function drawStrip(){
+  const d=cur(), n=d.count, strip=$('strip'), a=asp(), Hp=208, Wp=Math.round(Hp*a.w/a.h);
+  while(strip.children.length>n) strip.lastChild.remove();
+  for(let k=0;k<n;k++){ let c=strip.children[k]; if(!c){ c=document.createElement('canvas'); strip.appendChild(c); } renderTile(c,d,k,Wp,Hp); }
+  const sc=computeSchedule(state.dividers,state.order==='newest')[state.active];
+  $('stripMeta').innerHTML='<b>'+n+' image'+(n>1?'s':'')+'</b> · '+esc(fmtDate(d.date))+' · '+secToHMS(sc.first)+' → '+secToHMS(sc.last)+(sc.warn?'<br><span class="w">'+esc(sc.warn)+'</span>':'');
+}
+function renderChips(){
+  $('chips').innerHTML=state.dividers.map((d,i)=>'<button class="chip'+(i===state.active?' on':'')+'" data-i="'+i+'">'+esc(d.title||'Untitled')+'<small>×'+d.count+'</small></button>').join('');
+}
+function buildTileOptions(){
+  const sel=document.querySelector('select[data-f="textTile"]'), n=cur().count;
+  if(sel.options.length!==n+1){ sel.innerHTML=''; sel.add(new Option('Auto (center)',0)); for(let i=1;i<=n;i++) sel.add(new Option('Tile '+i,i)); }
+  sel.value=String(Math.min(cur().textTile,n));
+}
+function gval(k){ return ({order:state.order,cols:state.sim.cols,before:state.sim.before,size:state.out.size,aspect:state.out.aspect})[k]; }
+function syncForm(){
+  const d=cur(); buildTileOptions();
+  document.querySelectorAll('[data-f]').forEach(el=>{
+    const k=el.dataset.f;
+    if(el.classList.contains('seg')) el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===String(d[k])));
+    else if(el.classList.contains('tog')) el.classList.toggle('on',!!d[k]);
+    else if(el.type==='checkbox') el.checked=!!d[k];
+    else el.value=d[k];
+  });
+  document.querySelectorAll('[data-g]').forEach(el=>{
+    const k=el.dataset.g;
+    if(el.classList.contains('seg')) el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===String(gval(k))));
+    else el.value=gval(k);
+  });
+  syncDerived();
+}
+function syncDerived(){
+  const d=cur();
+  document.querySelectorAll('[data-out]').forEach(el=>{ el.textContent=d[el.dataset.out]+(el.dataset.suf||''); });
+  const conds={fit:d.fit,nofit:!d.fit,grad:d.bgType==='gradient',custom:d.placement==='custom',center:d.mode==='center'};
+  document.querySelectorAll('[data-when]').forEach(el=>el.classList.toggle('hide',!conds[el.dataset.when]));
+  $('modeHint').textContent=MODE_HINT[d.mode];
+  $('beforeLbl').textContent=d.placement==='end'?'Other photos after the divider':'Other photos before the divider';
+  buildTileOptions(); renderChips();
+}
+function changed(){ if(state.gen) clearGen(); save(); syncDerived(); schedule(); }
+
+document.addEventListener('input',onField); document.addEventListener('change',onField);
+function onField(e){
+  const el=e.target; if(!el.matches||!el.matches('input,select')) return;
+  if(el.dataset.f){
+    const d=cur(), k=el.dataset.f, t=el.dataset.t;
+    if(el.type==='checkbox') d[k]=el.checked;
+    else if(t==='num'){ if(el.value==='') return; d[k]=Number(el.value); if(k==='count'){ d.count=clamp(Math.round(d.count)||1,1,30); if(d.textTile>d.count) d.textTile=0; } }
+    else { if(k==='date'&&!el.value) return; d[k]=el.value; }
+    changed();
+  } else if(el.dataset.g){ setG(el.dataset.g,el.value); }
+}
+function setG(k,v){
+  if(k==='order') state.order=v;
+  else if(k==='cols') state.sim.cols=+v;
+  else if(k==='before') state.sim.before=clamp(Math.round(+v)||0,0,8);
+  else if(k==='size') state.out.size=+v;
+  else if(k==='aspect') state.out.aspect=v;
+  changed(); if(state.tab==='sim') drawSim(); if(state.tab==='export') renderExport();
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const seg=b.closest('.seg');
+  if(seg&&b.dataset.v!==undefined){
+    if(seg.dataset.f){ const k=seg.dataset.f; cur()[k]=(b.dataset.v==='true')?true:(b.dataset.v==='false')?false:b.dataset.v; changed(); syncForm(); }
+    else if(seg.dataset.g){ setG(seg.dataset.g,b.dataset.v); syncForm(); }
+    return;
+  }
+  if(b.classList.contains('tog')&&b.dataset.f){ const d=cur(); d[b.dataset.f]=!d[b.dataset.f]; b.classList.toggle('on',d[b.dataset.f]); changed(); return; }
+  if(b.dataset.step){ const p=b.dataset.step.split(':'), d=cur(); if(p[0]==='count'){ d.count=clamp(d.count+Number(p[1]),1,30); if(d.textTile>d.count) d.textTile=0; changed(); syncForm(); } return; }
+  if(b.classList.contains('chip')){ state.active=+b.dataset.i; save(); syncForm(); schedule(); return; }
+  if(b.dataset.tab){ showTab(b.dataset.tab); return; }
+  if(b.dataset.preset!==undefined){ Object.assign(cur(),PRESETS[+b.dataset.preset]); delete cur().n; changed(); syncForm(); return; }
+});
+$('btnShuffle').onclick=()=>{ cur().title=randWord(cur().title); changed(); syncForm(); };
+$('btnDateSub').onclick=()=>{ cur().subtitle=fmtDate(cur().date,true); changed(); syncForm(); };
+$('btnNew').onclick=()=>{ state.dividers.push(newDivider({date:cur().date})); state.active=state.dividers.length-1; changed(); syncForm(); toast('New divider added'); };
+$('btnDup').onclick=()=>{ state.dividers.splice(state.active+1,0,JSON.parse(JSON.stringify(cur()))); state.active++; changed(); syncForm(); toast('Duplicated'); };
+$('btnDel').onclick=()=>{
+  if(state.dividers.length===1){ state.dividers=[newDivider()]; }
+  else{ if(!confirm('Delete this divider?')) return; state.dividers.splice(state.active,1); state.active=Math.max(0,state.active-1); }
+  changed(); syncForm();
+};
+$('fontSel').innerHTML=Object.keys(FONTS).map(k=>'<option value="'+k+'">'+FONTS[k].label+'</option>').join('');
+$('presets').innerHTML=PRESETS.map((p,i)=>{
+  const bg=p.bgType==='gradient'?'linear-gradient('+(p.angle||135)+'deg,'+p.bg1+','+p.bg2+')':p.bg1;
+  return '<button class="sw" data-preset="'+i+'" aria-label="'+p.n+'" style="background:'+bg+';color:'+p.color+'">Aa</button>';
+}).join('');
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  state.tab=t;
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  window.scrollTo(0,0);
+  syncForm();
+  if(t==='design') schedule();
+  if(t==='sim') schedule();
+  if(t==='export') renderExport();
+}
+
+/* ---------- gallery simulator ---------- */
+function drawSim(){
+  const d=cur(), n=d.count, a=asp(), W=200, H=Math.round(W*a.h/a.w);
+  const sc=computeSchedule(state.dividers,state.order==='newest')[state.active];
+  const urls=[]; for(let k=0;k<n;k++){ const c=document.createElement('canvas'); renderTile(c,d,k,W,H); urls.push(c.toDataURL('image/jpeg',.85)); c.width=0; }
+  const tiles=[...Array(n).keys()].sort((x,y)=>sc.times[x]-sc.times[y]).map(k=>({t:'tile',k:k}));
+  const TRIP=9, before=state.sim.before, chrono=[];
+  const photos=(type,c,off)=>{ for(let i=0;i<c;i++) chrono.push({t:type,i:i+off}); };
+  if(d.placement==='end'){ photos('trip',TRIP,0); tiles.forEach(x=>chrono.push(x)); photos('other',before,20); }
+  else { photos('other',before,20); tiles.forEach(x=>chrono.push(x)); photos('trip',TRIP,0); }
+  const list=state.order==='newest'?chrono.slice().reverse():chrono;
+  const g=$('simGrid'); g.style.gridTemplateColumns='repeat('+state.sim.cols+',1fr)';
+  g.innerHTML=list.map(x=>{
+    if(x.t==='tile') return '<img alt="" src="'+urls[x.k]+'">';
+    const h=(x.i*53+(x.t==='trip'?30:200))%360, s=x.t==='trip'?'58%':'6%', l=x.t==='trip'?'62%':'58%';
+    return '<div style="background:linear-gradient(135deg,hsl('+h+' '+s+' '+l+'),hsl('+(h+25)+' '+s+' '+(x.t==='trip'?'48%':'44%')+'))"></div>';
+  }).join('');
+}
+
+/* ---------- export ---------- */
+let toastT=0;
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2600); }
+function slug(s){ return (s||'divider').trim().replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24)||'divider'; }
+function toBlobP(c,type,q){ return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Could not encode image')),type,q)); }
+function clearGen(){ if(state.gen){ state.gen.files.forEach(f=>URL.revokeObjectURL(f.url)); state.gen=null; } if(state.tab==='export') renderExport(); }
+function canShareFiles(){ try{ return !!(navigator.canShare&&navigator.canShare({files:[new File(['x'],'a.jpg',{type:'image/jpeg'})]})); }catch(e){ return false; } }
+
+function renderExport(){
+  const sched=computeSchedule(state.dividers,state.order==='newest'), a=asp(), W=state.out.size, H=Math.round(W*a.h/a.w);
+  let total=0;
+  $('expSummary').innerHTML=state.dividers.map((d,i)=>{ total+=d.count; const s=sched[i];
+    return '<div class="sumrow"><b>'+esc(d.title||'Untitled')+'</b> · '+d.count+' image'+(d.count>1?'s':'')+'<div class="m">'+esc(fmtDate(d.date))+' · '+secToHMS(s.first)+' → '+secToHMS(s.last)+(s.warn?' · '+esc(s.warn):'')+'</div></div>';
+  }).join('')+'<p class="hint">'+total+' images · '+W+' × '+H+' px · JPEG</p>';
+  $('btnGen').textContent=state.gen?'Create again':'Create '+total+' image'+(total>1?'s':'');
+  const R=$('expResults');
+  if(!state.gen){ R.innerHTML=''; return; }
+  const can=canShareFiles(), groups=state.dividers.map((d,i)=>state.gen.files.filter(f=>f.di===i));
+  R.innerHTML='<div class="card" style="padding-bottom:14px"><h3>Ready — '+state.gen.files.length+' images</h3>'
+    +'<p class="hint">Each image carries its own capture date and time, shown under it.</p>'
+    +'<div class="row col" style="margin-top:12px">'
+    +(can?'<button class="btn pri block" id="btnShareAll">Save to Photos / Share all</button>':'<p class="hint">Direct saving isn’t available in this browser. Use the ZIP or the downloads below.</p>')
+    +'<button class="btn block" id="btnZip">Download ZIP</button><button class="btn block" id="btnEach">Download images one by one</button></div>'
+    +groups.map((g,i)=>g.length?'<div class="ghead"><b>'+esc(state.dividers[i].title||'Untitled')+'</b>'+(can?'<button class="btn sm" data-share="'+i+'">Save this one</button>':'')+'</div><div class="thumbs">'
+      +g.map(f=>'<a href="'+f.url+'" target="_blank" rel="noopener"><img alt="" src="'+f.url+'">'+esc(f.label)+'</a>').join('')+'</div>':'').join('')
+    +'</div>';
+  const sa=$('btnShareAll'); if(sa) sa.onclick=()=>share(state.gen.files);
+  R.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>share(state.gen.files.filter(f=>f.di===+b.dataset.share)));
+  $('btnZip').onclick=zipDownload; $('btnEach').onclick=eachDownload;
+}
+async function generate(){
+  const btn=$('btnGen'), bar=$('genBar'), status=$('genStatus'); btn.disabled=true; clearGen();
+  const a=asp(), W=state.out.size, H=Math.round(W*a.h/a.w), sched=computeSchedule(state.dividers,state.order==='newest');
+  const total=state.dividers.reduce((s,d)=>s+d.count,0); let done=0; const files=[];
+  bar.classList.remove('hide'); bar.firstElementChild.style.width='0';
+  try{
+    for(let di=0;di<state.dividers.length;di++){
+      const d=state.dividers[di]; await ensureFont(d);
+      for(let k=0;k<d.count;k++){
+        const c=document.createElement('canvas'); renderTile(c,d,k,W,H);
+        const blob=await toBlobP(c,'image/jpeg',0.92); c.width=0; c.height=0;
+        const bytes=new Uint8Array(await blob.arrayBuffer());
+        const sec=sched[di].times[k], ex=exifDate(d.date,sec), out=injectExif(bytes,ex), ts=tsFrom(d.date,sec);
+        const name=d.date+'_'+(di+1)+'_'+slug(d.title)+'_'+pad2(k+1)+'.jpg';
+        const file=new File([out],name,{type:'image/jpeg',lastModified:ts});
+        files.push({file:file,name:name,di:di,k:k,ts:ts,data:out,url:URL.createObjectURL(file),label:(k+1)+' · '+secToHMS(sec)});
+        done++; bar.firstElementChild.style.width=(done/total*100)+'%'; status.textContent='Creating '+done+' of '+total+'…';
+        await new Promise(r=>setTimeout(r,0));
+      }
+    }
+    state.gen={files:files}; status.textContent='';
+  }catch(err){ status.textContent='Something went wrong: '+err.message+'. Try a smaller resolution.'; }
+  btn.disabled=false; bar.classList.add('hide'); renderExport();
+  if(state.gen) $('expResults').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function share(files){
+  try{ await navigator.share({files:files.map(f=>f.file),title:'The Gallery'}); }
+  catch(e){ if(e&&e.name!=='AbortError') toast('Could not open the share sheet. Try the ZIP.'); }
+}
+function dl(blobOrUrl,name){ const a=document.createElement('a'); a.href=typeof blobOrUrl==='string'?blobOrUrl:URL.createObjectURL(blobOrUrl); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+function zipDownload(){
+  const z=makeZip(state.gen.files.map(f=>({name:f.name,data:f.data,ts:f.ts})));
+  const u=URL.createObjectURL(z); dl(u,'the-gallery-dividers.zip'); setTimeout(()=>URL.revokeObjectURL(u),30000);
+}
+async function eachDownload(){ for(const f of state.gen.files){ dl(f.url,f.name); await new Promise(r=>setTimeout(r,450)); } }
+$('btnGen').onclick=generate;
+
+/* ---------- boot ---------- */
+syncForm(); schedule();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>schedule());
+})();
+</script>
+</body>
+</html>
