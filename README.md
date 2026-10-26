@@ -6,6 +6,7 @@ Everything runs in your browser. Nothing is uploaded anywhere.
 
 ## Use it
 Open the hosted page on your phone and choose Add to Home Screen.
+https://ulizel.github.io/The-Gallery/
 
-## Host your own
+## Or host your own
 Fork this repo, then Settings → Pages → Deploy from branch → `main` / root.
